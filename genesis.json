@@ -1,0 +1,11 @@
+{
+  "config": {
+    "chainId": 0,
+    "desc": "Genesis Block"
+  },
+  "alloc": {
+
+  },
+  "extraData": "",
+  "timestamp": "0x00"
+}

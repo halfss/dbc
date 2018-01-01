@@ -1,0 +1,66 @@
+#!/usr/bin/env python2.7
+
+import os
+import sys
+from tornado.ioloop import IOLoop
+from tornado.web import Application, RequestHandler
+import tornado.httpserver
+import json
+
+from dbc import block
+from dbc.state import State
+from dbc.options import get_options
+from dbc.api.transaction import Transaction
+from dbc.api.block import Block as Block_API
+from dbc.api.mine import Mine
+from dbc.sync import sync_all
+
+
+tbc_opts = [
+    {
+        "name": 'chain_dir',
+        "default": "./data",
+        "help": 'all chain data store in this dir',
+        "type": str,
+    }]
+
+options = get_options(tbc_opts, 'init')
+
+
+if not os.path.isdir(options.chain_dir):
+    print "\nchain dir is not exist, create it: mkdir %s\n" % options.chain_dir
+    os.mkdir(options.chain_dir)
+    os.mkdir(options.chain_dir+'/block')
+
+if options.genesis_file:
+    content = file(options.genesis_file).read()
+    genesis_json = json.loads(content)
+    print "Create Genesis Block"
+    genesis_block = block.create_genesis_block(genesis_json)
+    genesis_block.save()
+
+def main():
+    peers = [peer.strip() for peer in options.peer_nodes.split(",")]
+    if not os.path.isfile(options.block_path_format % (options.chain_dir, 'head')):
+        sync_all(peers)
+    last_block = block.get_last_block()
+    state = State('', last_block, [], peers, options.mine)
+    app = Application(handlers=[
+        (r"/transaction", Transaction, dict(state=state)),
+        (r"/mine", Mine, dict(state=state)),
+        (r"/block$", Block_API, dict(state=state)),
+        (r"/block/([a-zA-Z0-9-,]+)$", Block_API, dict(state=state))
+    ])
+    server = tornado.httpserver.HTTPServer(app)
+    server.bind(options.api_port)
+    server.start(1)  # forks one process per cpu
+    IOLoop.current().start()
+
+
+
+
+if __name__ =="__main__":
+    print "config list:"
+    for k, v in options.items():
+        print "    %s: %s" % (k, v)
+    main()
