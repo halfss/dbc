@@ -4,13 +4,13 @@
 # Implemented
 * block chain pack
 * node sync
+* transaction check
 
 # to do
-* transaction check
 * coin publication
 
-## API
-###1: transaction
+# API
+##1: transaction
 ```
 curl -X POST
      http://localhost:8080/transaction
@@ -21,11 +21,11 @@ curl -X POST
      }'
 ```
 
-###2: mine:
+##2: mine:
 ```
  curl  http://localhost:8080/mine
 ```
-###3: block
+##3: block
 * 1: get last block
 
 	```
@@ -36,4 +36,16 @@ curl -X POST
 
 	```
 	curl http://localhost:8080/block/7
+	```
+##4: Account
+* 1: get a private key
+
+	```
+	curl -X POST http://localhost:8080/account
+	```
+
+* 2: get a public key and addr by private key
+
+	```
+	curl http://localhost:8080/$private_key_hex
 	```

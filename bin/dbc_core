@@ -10,8 +10,9 @@ import json
 from dbc import block
 from dbc.state import State
 from dbc.options import get_options
-from dbc.api.transaction import Transaction
+from dbc.api.transfer import Transfer as Transfer_API
 from dbc.api.block import Block as Block_API
+from dbc.api.account import Account as Account_API
 from dbc.api.mine import Mine
 from dbc.sync import sync_all
 
@@ -31,6 +32,7 @@ if not os.path.isdir(options.chain_dir):
     print "\nchain dir is not exist, create it: mkdir %s\n" % options.chain_dir
     os.mkdir(options.chain_dir)
     os.mkdir(options.chain_dir+'/block')
+    os.mkdir(options.chain_dir+'/utxo')
 
 if options.genesis_file:
     content = file(options.genesis_file).read()
@@ -46,10 +48,12 @@ def main():
     last_block = block.get_last_block()
     state = State('', last_block, [], peers, options.mine)
     app = Application(handlers=[
-        (r"/transaction", Transaction, dict(state=state)),
+        (r"/transfer", Transfer_API, dict(state=state)),
         (r"/mine", Mine, dict(state=state)),
         (r"/block$", Block_API, dict(state=state)),
-        (r"/block/([a-zA-Z0-9-,]+)$", Block_API, dict(state=state))
+        (r"/block/([a-zA-Z0-9-,]+)$", Block_API, dict(state=state)),
+        (r"/account$", Account_API),
+        (r"/account/([a-zA-Z0-9-,]+)$", Account_API)
     ])
     server = tornado.httpserver.HTTPServer(app)
     server.bind(options.api_port)
