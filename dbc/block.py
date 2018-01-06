@@ -1,11 +1,12 @@
 #!/usr/bin/env python2.7
 import os
 
-import hashlib
 import json
+import hashlib
 import time
 
 from dbc import transfer
+from dbc import utils
 
 from dbc.options import get_options
 
@@ -90,7 +91,7 @@ class Block():
             print "block %s is exist, pass" % self.dict()['index']
             return False
         if self.sync:
-            print "block content chck"
+            print "block content check"
             if self.hash != self.hash_block(self.nonce):
                 print "hash is not correct, %s(send) != %s(generate)" % (self.hash, self.hash_block(self.nonce))
                 return False
@@ -98,14 +99,23 @@ class Block():
             if self.previous_hash != previous_block['hash']:
                 print "hash is not continuity"
                 return False
+            if self.data['trans'][0]['assets']['coin'] != utils.get_reward(self.index):
+                print "reward is not correct"
+                return False
         return True
 
     def save(self):
         '''
         save block file as a file to disk
         '''
-        if not self.check(): return False
+        if not self.check():
+            print "block check failed"
+            return False
         block_file_name = options.block_path_format % (options.chain_dir, hex(self.dict()['index']))
+        print "block %s trans is %s" % (self.dict()['index'], self.dict()['data']['trans'])
+        for _trans in self.dict()['data']['trans']:
+            print _trans
+            transfer.transfer_save(json.dumps(_trans))
         block_file = file(block_file_name, 'w')
         block_file.write(str(json.dumps(self.dict())))
         file(options.block_path_format % (options.chain_dir, 'head'), 'w').write(json.dumps({"max":self.dict()['index']}))
@@ -117,7 +127,6 @@ def create_genesis_block(genesis_json):
     '''
     data = {}
     alloc = genesis_json.get('alloc', {})
-    print alloc
     if alloc:
         trans = []
         for k, v in alloc.items():
@@ -126,6 +135,7 @@ def create_genesis_block(genesis_json):
                 "to": k,
                 "assets":v
                 }
+            print "intial alloc is: %s" % _trans
             trans.append(_trans)
             transfer.transfer_save(json.dumps(_trans))
         data['trans'] = trans
@@ -139,6 +149,6 @@ def get_last_block():
     return get_block_by_id(last_id)
 
 def get_block_by_id(block_id):
-    block_file_name = options.block_path_format % (options.chain_dir, '0x'+str(block_id))
+    block_file_name = options.block_path_format % (options.chain_dir, str(hex(int(block_id))))
     block_content = file(block_file_name, 'r').read()
     return json.loads(block_content)

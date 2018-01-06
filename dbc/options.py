@@ -11,7 +11,7 @@ from tornado.options import define, parse_command_line,\
 common_opts = [
         {
             "name": 'debug',
-            "default": False,
+            "default": True,
             "help": 'if logged debug info',
             "type": bool,
         },
@@ -54,8 +54,20 @@ common_opts = [
         },
         {
             "name": 'max_block_interval',
-            "default": "10",
+            "default": 10,
             "help": 'max seconds between block generate',
+            "type": int,
+        },
+        {
+            "name": 'start_stage_reward',
+            "default": 100,
+            "help": 'how many coin reward start stage reward',
+            "type": int,
+        },
+        {
+            "name": 'half_interval',
+            "default": 10000,
+            "help": 'reward halved between this block',
             "type": int,
         },
         ]

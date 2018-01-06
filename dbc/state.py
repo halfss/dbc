@@ -4,6 +4,7 @@ import time
 
 from dbc.options import get_options
 from dbc.block import Block
+from dbc import utils
 
 options = get_options()
 
@@ -30,8 +31,17 @@ class State():
         index = self.block['index'] + 1
         timestamp = str(time.time())
         data = {
-                    u"trans": self.trans[:options.block_trans_size]
+                    u"trans": self.trans[:(options.block_trans_size-1)]
                 }
+        reward = utils.get_reward(index)
+        if reward < 1e-08:
+            reward = 0
+        coin_trans = {
+            u"from": 0,
+            u"to": self.miner_address,
+            u"assets":{u"coin": reward}
+        }
+        data['trans'].insert(0, coin_trans)
         previous_hash = self.block['hash']
         print "old block"
         print self.block
@@ -43,7 +53,7 @@ class State():
 
     def data_refresh(self, block):
         self.block = block.dict()
-        self.trans = self.trans[options.block_trans_size:]
+        self.trans = self.trans[(options.block_trans_size-1):]
         self.time = time.time()
 
     def trans_hash(self, text):

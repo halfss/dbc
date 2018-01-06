@@ -15,16 +15,18 @@ from dbc.api.block import Block as Block_API
 from dbc.api.account import Account as Account_API
 from dbc.api.mine import Mine
 from dbc.sync import sync_all
-
+from dbc import utils
 
 options = get_options()
 
 
-if not os.path.isdir(options.chain_dir):
-    print "\nchain dir is not exist, create it: mkdir %s\n" % options.chain_dir
-    os.mkdir(options.chain_dir)
-    os.mkdir(options.chain_dir+'/block')
-    os.mkdir(options.chain_dir+'/utxo')
+def dir_check():
+    if not os.path.isdir(options.chain_dir):
+        os.mkdir(options.chain_dir)
+    if not os.path.isdir(options.chain_dir+'/block'):
+        os.mkdir(options.chain_dir+'/block')
+    if not os.path.isdir(options.chain_dir+'/utxo'):
+        os.mkdir(options.chain_dir+'/utxo')
 
 if options.genesis_file:
     content = file(options.genesis_file).read()
@@ -34,11 +36,13 @@ if options.genesis_file:
     genesis_block.save()
 
 def main():
+    dir_check()
     peers = [peer.strip() for peer in options.peer_nodes.split(",")]
     if not os.path.isfile(options.block_path_format % (options.chain_dir, 'head')):
         sync_all(peers)
     last_block = block.get_last_block()
-    state = State('', last_block, [], peers, options.mine, [])
+    miner_addr = utils.get_miner_addr()
+    state = State(miner_addr, last_block, [], peers, options.mine, [])
     app = Application(handlers=[
         (r"/transfer", Transfer_API, dict(state=state)),
         (r"/mine", Mine, dict(state=state)),

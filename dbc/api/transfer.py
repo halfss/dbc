@@ -44,4 +44,4 @@ class Transfer(tornado.web.RequestHandler):
 
     def trans(self, trans):
         self.state.trans_add(trans)
-        return transfer.transfer_save(json.dumps(trans))
+        return transfer.transfer_hash(json.dumps(trans))

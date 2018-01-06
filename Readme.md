@@ -5,9 +5,10 @@
 * block chain pack
 * node sync
 * transaction check
+* coin publication
 
 # to do
-* coin publication
+* transfer fee
 
 # API
 ##1: transaction

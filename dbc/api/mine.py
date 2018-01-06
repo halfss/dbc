@@ -16,6 +16,7 @@ class Mine(tornado.web.RequestHandler):
         watch transaction, if transaction is enough, start mining
         '''
         synced = sync(self.state)
-        if len(self.state.trans) >= options.block_trans_size or \
-                time.time() - self.state.time > options.max_block_interval :
+        if self.state.trans and (
+                len(self.state.trans) >= options.block_trans_size or \
+                time.time() - self.state.time > int(options.max_block_interval)):
             self.state.block_pack()
