@@ -20,6 +20,8 @@ options = get_options(transfer_opts, 'init')
 def transfer_save(trans):
     file_name = transfer_hash(trans)
     file(options.trans_path_format % (options.chain_dir, file_name), 'w').write(trans)
+    print "utxo id is:", file_name
+    return file_name
 
 def transfer_hash(trans):
     sha = hashlib.sha256()

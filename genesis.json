@@ -4,7 +4,7 @@
     "desc": "Genesis Block"
   },
   "alloc": {
-
+      "5NRX4tVRvfdCK7LZRzrtBeu8GESG9krh1v": {"coin":100000}
   },
   "extraData": "",
   "timestamp": "0x00"

@@ -45,7 +45,19 @@ common_opts = [
             "default": False,
             "help": 'Enable mining',
             "type": bool,
-        }
+        },
+        {
+            "name": 'chain_dir',
+            "default": "./data",
+            "help": 'all chain data store in this dir',
+            "type": str,
+        },
+        {
+            "name": 'max_block_interval',
+            "default": "10",
+            "help": 'max seconds between block generate',
+            "type": int,
+        },
         ]
 
 

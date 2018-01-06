@@ -35,12 +35,13 @@ class Transfer(tornado.web.RequestHandler):
         for k, v in trans['assets'].items():
             print "\t%s%s transfer from %s to %s" % (v, k, trans['from'], trans['to'])
         self.trans(trans)
+        return_utxo=''
         if return_trans:
-            self.trans(return_trans)
+            return_utxo = self.trans(return_trans)
         print "new memary trans len is %s" % len(self.state.trans)
         print self.state.trans
-        self.write(json.dumps({"result":"success"}))
+        self.write(json.dumps({"result":"success", "return_utxo":return_utxo}))
 
     def trans(self, trans):
         self.state.trans_add(trans)
-        transfer.transfer_save(json.dumps(trans))
+        return transfer.transfer_save(json.dumps(trans))

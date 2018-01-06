@@ -5,15 +5,11 @@ import hashlib
 import json
 import time
 
+from dbc import transfer
+
 from dbc.options import get_options
 
 tbc_opts = [
-    {
-        "name": 'chain_dir',
-        "default": "./data",
-        "help": 'all chain data store in this dir',
-        "type": str,
-    },
     {
         "name": "block_path_format",
         "default": "%s/block/%s.json",
@@ -25,6 +21,12 @@ tbc_opts = [
         "default": 5,
         "help": "how many trans in one block",
         "type": int,
+    },
+    {
+        "name": "block_zone_length",
+        "default": 2,
+        "help": "how many trans in one block",
+        "type": int,
     }
     ]
 
@@ -34,19 +36,37 @@ class Block():
     '''
     define block structure and rule
     '''
-    def __init__(self, index, timestamp, data, previous_hash):
+    def __init__(self, index, timestamp, data, previous_hash, nonce='', bhash='', sync=False):
         self.data = data
         if type(data) != dict: return "Illegal data, data must be dict"
         self.index = index
         self.timestamp = timestamp
         self.previous_hash = previous_hash
-        self.hash = self.hash_block().encode('utf8')
+        self.sync = sync
+        if self.sync:
+            self.nonce = nonce
+            self.hash = bhash
+        else:
+            self.nonce, self.hash = self.get_nonce()
 
-    def hash_block(self):
+    def get_nonce(self):
+        for i in range(0,10000000):
+            i = str(i)
+            block_hash_str = self.hash_block(i)
+            print block_hash_str
+            print block_hash_str[:options.block_zone_length]
+            if block_hash_str[:options.block_zone_length] == '0' * options.block_zone_length:
+                break
+        return i, block_hash_str
+
+
+    def hash_block(self, nonce):
         block_str = str(self.index) + \
                     str(self.timestamp) + \
                     str(self.data) + \
-                    str(self.previous_hash)
+                    str(self.previous_hash) + \
+                    nonce
+        print block_str
         return self.block_hash(block_str)
 
     def dict(self):
@@ -55,11 +75,12 @@ class Block():
                 timestamp = self.timestamp,
                 data = self.data,
                 previous_hash = self.previous_hash,
-                hash = self.hash
+                hash = self.hash,
+                nonce = self.nonce
                 )
 
     def block_hash(self, text):
-        sha = hashlib.sha512()
+        sha = hashlib.sha256()
         sha.update(text.encode('utf-8'))
         return sha.hexdigest()
 
@@ -68,6 +89,15 @@ class Block():
         if os.path.isfile(block_file_name):
             print "block %s is exist, pass" % self.dict()['index']
             return False
+        if self.sync:
+            print "block content chck"
+            if self.hash != self.hash_block(self.nonce):
+                print "hash is not correct, %s(send) != %s(generate)" % (self.hash, self.hash_block(self.nonce))
+                return False
+            previous_block = get_block_by_id(self.index-1)
+            if self.previous_hash != previous_block['hash']:
+                print "hash is not continuity"
+                return False
         return True
 
     def save(self):
@@ -79,12 +109,28 @@ class Block():
         block_file = file(block_file_name, 'w')
         block_file.write(str(json.dumps(self.dict())))
         file(options.block_path_format % (options.chain_dir, 'head'), 'w').write(json.dumps({"max":self.dict()['index']}))
+        print "block %s is save with %s" % (self.dict()['index'], block_file_name)
 
 def create_genesis_block(genesis_json):
     '''
     create the Gendsis Block
     '''
-    return Block(0, str(time.time()), genesis_json, "0")
+    data = {}
+    alloc = genesis_json.get('alloc', {})
+    print alloc
+    if alloc:
+        trans = []
+        for k, v in alloc.items():
+            _trans = {
+                "from": 0,
+                "to": k,
+                "assets":v
+                }
+            trans.append(_trans)
+            transfer.transfer_save(json.dumps(_trans))
+        data['trans'] = trans
+    data['info'] = genesis_json
+    return Block(0, str(time.time()), data, "0")
 
 def get_last_block():
     last_content = file(options.block_path_format % (options.chain_dir, 'head'), 'r').read()

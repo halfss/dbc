@@ -17,15 +17,7 @@ from dbc.api.mine import Mine
 from dbc.sync import sync_all
 
 
-tbc_opts = [
-    {
-        "name": 'chain_dir',
-        "default": "./data",
-        "help": 'all chain data store in this dir',
-        "type": str,
-    }]
-
-options = get_options(tbc_opts, 'init')
+options = get_options()
 
 
 if not os.path.isdir(options.chain_dir):
@@ -46,7 +38,7 @@ def main():
     if not os.path.isfile(options.block_path_format % (options.chain_dir, 'head')):
         sync_all(peers)
     last_block = block.get_last_block()
-    state = State('', last_block, [], peers, options.mine)
+    state = State('', last_block, [], peers, options.mine, [])
     app = Application(handlers=[
         (r"/transfer", Transfer_API, dict(state=state)),
         (r"/mine", Mine, dict(state=state)),
