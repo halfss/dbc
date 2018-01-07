@@ -19,3 +19,14 @@ def get_reward(index):
     if reward < 1e-08:
         reward = 0
     return reward
+
+def get_reward_trans(index, miner_address):
+    reward = get_reward(index)
+    if reward < 1e-08:
+        reward = 0
+    coin_trans = {
+        u"from": 0,
+        u"to": u'%s' % miner_address,
+        u"assets":{u"coin": reward}
+    }
+    return coin_trans

@@ -1,5 +1,6 @@
 import json
 import tornado.web
+from decimal import Decimal
 
 from dbc import transfer
 
@@ -17,7 +18,7 @@ class Transfer(tornado.web.RequestHandler):
           "singout": "", # hash sign by account private key
           "returnto": "8rP4v7r7bfpyo2XGHjP1wCanvVqDgZFrp4", #Remaining assets back address
           "assets": {
-            "amount": 1
+            "coin": 1
           }
         }
 
@@ -34,9 +35,11 @@ class Transfer(tornado.web.RequestHandler):
         print "  From %s to %s" % (trans['from'], trans['to'])
         for k, v in trans['assets'].items():
             print "\t%s%s transfer from %s to %s" % (v, k, trans['from'], trans['to'])
+        trans[u'fee'] = float(trans['fee'])/2
         self.trans(trans)
         return_utxo=''
         if return_trans:
+            return_trans[u'fee'] = trans[u'fee']
             return_utxo = self.trans(return_trans)
         print "new memary trans len is %s" % len(self.state.trans)
         print self.state.trans

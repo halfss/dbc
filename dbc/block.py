@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
-import os
 
+import os
 import json
 import hashlib
 import time
@@ -51,22 +51,21 @@ class Block():
             self.nonce, self.hash = self.get_nonce()
 
     def get_nonce(self):
-        for i in range(0,10000000):
-            i = str(i)
-            block_hash_str = self.hash_block(i)
-            print block_hash_str
-            print block_hash_str[:options.block_zone_length]
+        i = 0
+        while True:
+            block_hash_str = self.hash_block(str(i))
             if block_hash_str[:options.block_zone_length] == '0' * options.block_zone_length:
                 break
+            i += 1
         return i, block_hash_str
 
 
     def hash_block(self, nonce):
         block_str = str(self.index) + \
                     str(self.timestamp) + \
-                    str(self.data) + \
+                    str(self.data).encode('utf8') + \
                     str(self.previous_hash) + \
-                    nonce
+                    str(nonce)
         print block_str
         return self.block_hash(block_str)
 
@@ -95,10 +94,12 @@ class Block():
             if self.hash != self.hash_block(self.nonce):
                 print "hash is not correct, %s(send) != %s(generate)" % (self.hash, self.hash_block(self.nonce))
                 return False
-            previous_block = get_block_by_id(self.index-1)
-            if self.previous_hash != previous_block['hash']:
-                print "hash is not continuity"
-                return False
+            if self.index != 0:
+                previous_block = get_block_by_id(self.index-1)
+                if self.previous_hash != previous_block['hash']:
+                    print "hash is not continuity"
+                    return False
+            print self.data['trans'][0]['assets']['coin'], utils.get_reward(self.index)
             if self.data['trans'][0]['assets']['coin'] != utils.get_reward(self.index):
                 print "reward is not correct"
                 return False
@@ -121,25 +122,29 @@ class Block():
         file(options.block_path_format % (options.chain_dir, 'head'), 'w').write(json.dumps({"max":self.dict()['index']}))
         print "block %s is save with %s" % (self.dict()['index'], block_file_name)
 
-def create_genesis_block(genesis_json):
+def create_genesis_block(genesis_json, miner_address):
     '''
     create the Gendsis Block
     '''
     data = {}
     alloc = genesis_json.get('alloc', {})
+    data[u'trans'] = []
     if alloc:
         trans = []
         for k, v in alloc.items():
             _trans = {
-                "from": 0,
-                "to": k,
-                "assets":v
+                u"from": 0,
+                u"to": k,
+                u"assets":v
                 }
             print "intial alloc is: %s" % _trans
             trans.append(_trans)
             transfer.transfer_save(json.dumps(_trans))
-        data['trans'] = trans
-    data['info'] = genesis_json
+        data[u'trans'] = trans
+    coin_trans = utils.get_reward_trans(0, miner_address)
+    print "genesis reward"
+    data[u'trans'].insert(0, coin_trans)
+    data[u'info'] = genesis_json
     return Block(0, str(time.time()), data, "0")
 
 def get_last_block():
@@ -147,6 +152,7 @@ def get_last_block():
     last_json = json.loads(last_content)
     last_id = last_json['max']
     return get_block_by_id(last_id)
+
 
 def get_block_by_id(block_id):
     block_file_name = options.block_path_format % (options.chain_dir, str(hex(int(block_id))))

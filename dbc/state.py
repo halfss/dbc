@@ -1,6 +1,7 @@
 #coding=utf8
 import datetime
 import time
+import hashlib
 
 from dbc.options import get_options
 from dbc.block import Block
@@ -21,26 +22,19 @@ class State():
         self.trans = trans
         self.mining = mining
         self.peer_nodes = peer_nodes
-        self.trans_hash = []
 
     def trans_add(self, trans):
         self.trans.append(trans)
-        self.trans_hash.append(str(trans))
+        self.trans = sorted(self.trans, key=lambda k: float(k.get('fee', 0)), reverse=True)
 
     def block_pack(self):
         index = self.block['index'] + 1
         timestamp = str(time.time())
+        pack_trans = self.trans[:options.block_trans_size]
         data = {
-                    u"trans": self.trans[:(options.block_trans_size-1)]
+                    u"trans": pack_trans
                 }
-        reward = utils.get_reward(index)
-        if reward < 1e-08:
-            reward = 0
-        coin_trans = {
-            u"from": 0,
-            u"to": self.miner_address,
-            u"assets":{u"coin": reward}
-        }
+        coin_trans = utils.get_reward_trans(index, self.miner_address)
         data['trans'].insert(0, coin_trans)
         previous_hash = self.block['hash']
         print "old block"
@@ -53,7 +47,7 @@ class State():
 
     def data_refresh(self, block):
         self.block = block.dict()
-        self.trans = self.trans[(options.block_trans_size-1):]
+        self.trans = self.trans[options.block_trans_size:]
         self.time = time.time()
 
     def trans_hash(self, text):

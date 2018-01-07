@@ -28,20 +28,23 @@ def dir_check():
     if not os.path.isdir(options.chain_dir+'/utxo'):
         os.mkdir(options.chain_dir+'/utxo')
 
-if options.genesis_file:
+def create_genesis_block(miner_addr):
     content = file(options.genesis_file).read()
     genesis_json = json.loads(content)
     print "Create Genesis Block"
-    genesis_block = block.create_genesis_block(genesis_json)
+    genesis_block = block.create_genesis_block(genesis_json, miner_addr)
     genesis_block.save()
 
 def main():
     dir_check()
+    miner_addr = utils.get_miner_addr()
+    if options.genesis_file:
+        create_genesis_block(miner_addr)
     peers = [peer.strip() for peer in options.peer_nodes.split(",")]
+    print options.block_path_format % (options.chain_dir, 'head')
     if not os.path.isfile(options.block_path_format % (options.chain_dir, 'head')):
         sync_all(peers)
     last_block = block.get_last_block()
-    miner_addr = utils.get_miner_addr()
     state = State(miner_addr, last_block, [], peers, options.mine, [])
     app = Application(handlers=[
         (r"/transfer", Transfer_API, dict(state=state)),

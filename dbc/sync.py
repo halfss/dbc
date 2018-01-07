@@ -23,14 +23,6 @@ def sync_all(peer_nodes):
 def sync_block_range(peer, start, end, state=''):
     for i in range(start+1, end+1):
         block_json = requests.get("%s/block/%s" % (peer, i)).json()
-        if state.trans:
-            for tran in block_json['data'].get('trans', []):
-                tran_hash = state.trans_hash(str(tran))
-                if tran_hash in state.trans_hash:
-                    print "trans %s is blocked" % tran
-                    trans_index = state.trans_hash.index(tran_hash)
-                    state.trans.pop(tran)
-                    state.trans_hash.pop(trans_hash)
         print "block %s is %s" % (i, block_json)
         block = Block(block_json['index'],
                 block_json['timestamp'],
