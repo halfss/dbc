@@ -120,7 +120,3 @@ def get_options(opts=None, group=None):
     options = register_opts(common_opts, 'common')
     parse_command_line()
     return options
-
-if __name__ == "__main__":
-    options = get_options().as_dict()
-    print options.get('config', None)

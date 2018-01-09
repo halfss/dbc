@@ -23,21 +23,20 @@ class Transfer(tornado.web.RequestHandler):
         }
 
         '''
-        print "memary trans len is %s" % len(self.state.trans)
-        print self.state.trans
+        LOG.debug("memary trans len is %s" % len(self.state.trans))
+        LOG.debug(self.state.trans)
         trans = json.loads(self.request.body.decode('utf-8'))
         transable, trans, return_trans = transfer.utxo_transfer(trans)
         if not transable:
+            LOG.debug("trans check result: %s" % transable)
             self.write({'result':'failed'})
             return
-        print "trans check result: %s" % transable
-        print "New transaction:"
-        print "  From %s to %s" % (trans['from'], trans['to'])
+        LOG.debug("  From %s to %s" % (trans['from'], trans['to']))
         for k, v in trans['assets'].items():
-            print "\t%s%s transfer from %s to %s" % (v, k, trans['from'], trans['to'])
+            LOG.debug("\t%s%s transfer from %s to %s" % (v, k, trans['from'], trans['to']))
         return_utxo = self.trans(trans, return_trans)
-        print "new memary trans len is %s" % len(self.state.trans)
-        print self.state.trans
+        LOG.debug("new memary trans len is %s" % len(self.state.trans))
+        LOG.debug(self.state.trans)
         self.write(json.dumps({"result":"success", "return_utxo":return_utxo}))
 
     def trans(self, trans, return_trans):

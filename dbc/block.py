@@ -7,6 +7,7 @@ import time
 
 from dbc import transfer
 from dbc import utils
+from dbc.log import LOG
 
 from dbc.options import get_options
 
@@ -45,7 +46,6 @@ class Block():
                     str(self.data).encode('utf8') + \
                     str(self.previous_hash) + \
                     str(nonce)
-        print block_str
         return self.block_hash(block_str)
 
     def dict(self):
@@ -66,21 +66,22 @@ class Block():
     def check(self):
         block_file_name = options.block_path_format % (options.chain_dir, hex(self.dict()['index']))
         if os.path.isfile(block_file_name):
-            print "block %s is exist, pass" % self.dict()['index']
+            LOG.info("block %s is exist, pass" % self.dict()['index'])
             return False
         if self.sync:
-            print "block content check"
+            LOG.debug("block content check")
             if self.hash != self.hash_block(self.nonce):
-                print "hash is not correct, %s(send) != %s(generate)" % (self.hash, self.hash_block(self.nonce))
+                LOG.info("hash is not correct, %s(send) != %s(generate)" % (self.hash, self.hash_block(self.nonce)))
                 return False
             if self.index != 0:
                 previous_block = get_block_by_id(self.index-1)
                 if self.previous_hash != previous_block['hash']:
-                    print "hash is not continuity"
+                    LOG.info("hash is not continuity")
                     return False
             if (self.data['trans'][0]['assets']['coin']-fee) != utils.get_reward(self.index):
-                print "%s - %s != %s" % (self.data['trans'][0]['assets']['coin'], fee, utils.get_reward(self.index))
-                print "reward is not correct"
+                LOG.info("reward is not correct, %s - %s != %s" % \
+                        (self.data['trans'][0]['assets']['coin'], \
+                            fee, utils.get_reward(self.index)))
                 return False
         return True
 
@@ -89,17 +90,16 @@ class Block():
         save block file as a file to disk
         '''
         if not self.check():
-            print "block check failed"
+            LOG.info("block check failed")
             return False
         block_file_name = options.block_path_format % (options.chain_dir, hex(self.dict()['index']))
-        print "block %s trans is %s" % (self.dict()['index'], self.dict()['data']['trans'])
+        LOG.debug("block %s trans is %s" % (self.dict()['index'], self.dict()['data']['trans']))
         for _trans in self.dict()['data']['trans']:
-            print _trans
             transfer.transfer_save(json.dumps(_trans))
         block_file = file(block_file_name, 'w')
         block_file.write(str(json.dumps(self.dict())))
         file(options.block_path_format % (options.chain_dir, 'head'), 'w').write(json.dumps({"max":self.dict()['index']}))
-        print "block %s is save with %s" % (self.dict()['index'], block_file_name)
+        LOG.debug("block %s is save with %s" % (self.dict()['index'], block_file_name))
 
 def create_genesis_block(genesis_json, miner_address):
     '''
@@ -116,12 +116,11 @@ def create_genesis_block(genesis_json, miner_address):
                 u"to": k,
                 u"assets":v
                 }
-            print "intial alloc is: %s" % _trans
+            LOG.info("intial alloc is: %s" % _trans)
             trans.append(_trans)
             transfer.transfer_save(json.dumps(_trans))
         data[u'trans'] = trans
     coin_trans = utils.get_reward_trans(0, miner_address)
-    print "genesis reward"
     data[u'trans'].insert(0, coin_trans)
     data[u'info'] = genesis_json
     return Block(0, str(time.time()), data, "0")

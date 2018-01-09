@@ -28,7 +28,6 @@ def get_public_key(private_key_hex):
     pk_string = binascii.unhexlify(private_key_hex)
     sk = SigningKey.from_string(pk_string, curve = NIST384p)
     publick = sk.get_verifying_key()
-    print publick.to_string()
     return binascii.hexlify(publick.to_string())
 
 def sign(private_key_hex, seed):
@@ -54,15 +53,3 @@ def ripemd160(s):
     h = hashlib.new('ripemd160')
     h.update(b"%s" % s)
     return h.hexdigest()
-
-if __name__ == "__main__":
-    pk_hex = gen_private_key()
-    publick_hex = get_public_key(pk_hex)
-    addr = get_addr(publick_hex)
-    print pk_hex
-    print publick_hex
-    print addr
-    signout_hex = sign(pk_hex, "asdfasfee")
-    print verify(signout_hex, publick_hex, "asdfasfee")
-    signout_hex = sign("32097224adacfa5cadf7eb7994037ecea41d3db3cce35ae4eea01e13868c75dbef378da43d0839f24dba21a79afaed47", "d7fced03e7fcef568361da142390dd85866a673573569f75c4c6dd565dde0fe3")
-    print signout_hex

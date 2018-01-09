@@ -54,12 +54,8 @@ class State():
         coin_trans[u'assets'][u'coin'] += fee
         data['trans'].insert(0, coin_trans)
         previous_hash = self.block['hash']
-        print "old block"
-        print self.block
         new_block = Block(index, timestamp, data, previous_hash)
         new_block.save()
-        print "new block"
-        print new_block.dict()
         self.data_refresh(new_block)
 
     def data_refresh(self, block):

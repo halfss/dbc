@@ -16,25 +16,29 @@ from dbc.api.account import Account as Account_API
 from dbc.api.mine import Mine
 from dbc.sync import sync_all
 from dbc import utils
+from dbc.log import LOG
 
 options = get_options()
 
 
 def dir_check():
     if not os.path.isdir(options.chain_dir):
+        LOG.info('create main dir: %s' % options.chain_dir)
         os.mkdir(options.chain_dir)
     if not os.path.isdir(options.chain_dir+'/block'):
+        LOG.info('create block dir: %s' % options.chain_dir+'/block')
         os.mkdir(options.chain_dir+'/block')
     if not os.path.isdir(options.chain_dir+'/utxo'):
+        LOG.info('create block dir: %s' % options.chain_dir+'/utxo')
         os.mkdir(options.chain_dir+'/utxo')
 
 def create_genesis_block(miner_addr):
     if os.path.isfile(options.chain_dir+'/block/head.json'):
-        print "Genesis Block is exist, exit"
+        LOG.info("Genesis Block is exist, exit")
         sys.exit(1)
     content = file(options.genesis_file).read()
     genesis_json = json.loads(content)
-    print "Create Genesis Block"
+    LOG.info("Create Genesis Block")
     genesis_block = block.create_genesis_block(genesis_json, miner_addr)
     genesis_block.save()
 
@@ -44,7 +48,6 @@ def main():
     if options.genesis_file:
         create_genesis_block(miner_addr)
     peers = [peer.strip() for peer in options.peer_nodes.split(",")]
-    print options.block_path_format % (options.chain_dir, 'head')
     if not os.path.isfile(options.block_path_format % (options.chain_dir, 'head')):
         sync_all(peers)
     last_block = block.get_last_block()
@@ -59,14 +62,14 @@ def main():
     ])
     server = tornado.httpserver.HTTPServer(app)
     server.bind(options.api_port)
-    server.start(1)  # forks one process per cpu
+    server.start(1)
     IOLoop.current().start()
 
 
 
 
 if __name__ =="__main__":
-    print "config list:"
+    LOG.info("all config options list:")
     for k, v in options.items():
-        print "    %s: %s" % (k, v)
+        LOG.info("%s: %s" % (k, v))
     main()
