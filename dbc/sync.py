@@ -32,6 +32,7 @@ def sync_block_range(peer, start, end, state=''):
                 block_json['hash'],
                 sync=True)
         block.save()
+        time.sleep(0.1)
 
 
 def get_longest_peer(peer_nodes):

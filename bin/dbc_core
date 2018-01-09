@@ -29,6 +29,9 @@ def dir_check():
         os.mkdir(options.chain_dir+'/utxo')
 
 def create_genesis_block(miner_addr):
+    if os.path.isfile(options.chain_dir+'/block/head.json'):
+        print "Genesis Block is exist, exit"
+        sys.exit(1)
     content = file(options.genesis_file).read()
     genesis_json = json.loads(content)
     print "Create Genesis Block"
@@ -45,7 +48,7 @@ def main():
     if not os.path.isfile(options.block_path_format % (options.chain_dir, 'head')):
         sync_all(peers)
     last_block = block.get_last_block()
-    state = State(miner_addr, last_block, [], peers, options.mine, [])
+    state = State(miner_addr, last_block, [], peers, options.mine)
     app = Application(handlers=[
         (r"/transfer", Transfer_API, dict(state=state)),
         (r"/mine", Mine, dict(state=state)),

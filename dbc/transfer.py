@@ -28,27 +28,27 @@ def transfer_hash(trans):
     sha.update(trans.encode('utf-8'))
     return sha.hexdigest()
 
-def transfer_check(trans):
+def utxo_transfer(trans):
     try:
         utxo = get_utxo_by_id(trans)
         _addr = account.get_addr(trans['publickey'])
         print "address is pair or not"
-        if utxo['to'] != _addr: return (False, {})
+        if utxo['to'] != _addr: return (False, {}, {})
         print "signout is pair or not"
         account.verify(trans['singout'], trans['publickey'], trans['from'])
     except:
-        return (False, {})
+        return (False, {}, {})
     result, new_assets = transfer(trans, utxo)
     if result and new_assets:
         print "new assets after trans is %s" % new_assets
         utxo['to'] =trans.get('returto') or utxo['to']
         utxo['assets'] = new_assets
+        fee = float(trans['fee'])/2
+        trans[u'fee'] = utxo[u'fee'] = fee
     else:
         utxo = {}
     os.remove(options.trans_path_format % (options.chain_dir, trans['from']))
-    print "ddddddd:w"
-    print utxo
-    return (True, utxo)
+    return (True, trans, utxo)
 
 def transfer(trans, utxo):
     print "trans assets: %s" % trans['assets']
