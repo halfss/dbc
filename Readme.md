@@ -1,18 +1,23 @@
-# dbc
+## dbc
+
 `a light, high scalability blockchain implement`
 
-#code
--------------------------------------------------------------------------------
-Language                     files          blank        comment           code
--------------------------------------------------------------------------------
-Python                          15            103             49            670
-Markdown                         1             10              0             48
-JSON                             1              0              0             11
--------------------------------------------------------------------------------
-SUM:                            17            113             49            729
--------------------------------------------------------------------------------
 
-# Implemented
+##code
+<pre>
+ -------------------------------------------------------------------------------
+ Language                     files          blank        comment           code
+ -------------------------------------------------------------------------------
+ Python                          15            103             49            670
+ Markdown                         1             10              0             48
+ JSON                             1              0              0             11
+ -------------------------------------------------------------------------------
+ SUM:                            17            113             49            729
+ -------------------------------------------------------------------------------
+ </pre>
+
+## Implemented
+
 * block chain pack
 * node sync
 * transaction check
@@ -20,12 +25,15 @@ SUM:                            17            113             49            729
 * transfer fee
 * log file support
 
-# to do
+## to do
+
 * smart contact support
 
-# API
-* 1: transaction
-```
+## API
+
+<pre>
+1: transaction
+
 curl -X POST
      http://localhost:8080/transaction
      -d '{
@@ -37,33 +45,27 @@ curl -X POST
             "fee": 0.0001,
             "assets": {u"coin": 20}
      }'
-```
 
-* 2: mine:
-```
- curl  http://localhost:8080/mine
-```
-* 3: block
-** 1: get last block
+2: mine:
 
-	```
-	curl http://localhost:8080/block
-	```
+     curl  http://localhost:8080/mine
 
-** 2: get block by id
+3: block
+  1: get last block
 
-	```
-	curl http://localhost:8080/block/7
-	```
-*4: Account
-** 1: get a private key
+    curl http://localhost:8080/block
 
-	```
-	curl -X POST http://localhost:8080/account
-	```
+  2: get block by id
 
-** 2: get a public key and addr by private key
+    curl http://localhost:8080/block/7
 
-	```
-	curl http://localhost:8080/$private_key_hex
-	```
+4: Account
+  1: get a private key
+
+    curl -X POST http://localhost:8080/account
+
+  2: get a public key and addr by private key
+
+    curl http://localhost:8080/$private_key_hex
+
+<pre>
