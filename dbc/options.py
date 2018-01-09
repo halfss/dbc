@@ -70,6 +70,24 @@ common_opts = [
             "help": 'reward halved between this block',
             "type": int,
         },
+        {
+            "name": "block_path_format",
+            "default": "%s/block/%s.json",
+            "help": "the path to save block file in python format",
+            "type": str,
+        },
+        {
+            "name": "block_trans_size",
+            "default": 5,
+            "help": "how many trans in one block",
+            "type": int,
+        },
+        {
+            "name": "block_diffity",
+            "default": 3,
+            "help": "how many trans in one block",
+            "type": int,
+        }
         ]
 
 

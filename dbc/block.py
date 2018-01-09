@@ -10,28 +10,7 @@ from dbc import utils
 
 from dbc.options import get_options
 
-tbc_opts = [
-    {
-        "name": "block_path_format",
-        "default": "%s/block/%s.json",
-        "help": "the path to save block file in python format",
-        "type": str,
-    },
-    {
-        "name": "block_trans_size",
-        "default": 5,
-        "help": "how many trans in one block",
-        "type": int,
-    },
-    {
-        "name": "block_zone_length",
-        "default": 2,
-        "help": "how many trans in one block",
-        "type": int,
-    }
-    ]
-
-options = get_options(tbc_opts, 'init')
+options = get_options()
 
 class Block():
     '''
@@ -54,7 +33,7 @@ class Block():
         i = 0
         while True:
             block_hash_str = self.hash_block(str(i))
-            if block_hash_str[:options.block_zone_length] == '0' * options.block_zone_length:
+            if block_hash_str[:options.block_diffity] == '0' * options.block_diffity:
                 break
             i += 1
         return i, block_hash_str
@@ -99,8 +78,8 @@ class Block():
                 if self.previous_hash != previous_block['hash']:
                     print "hash is not continuity"
                     return False
-            print self.data['trans'][0]['assets']['coin'], utils.get_reward(self.index)
-            if self.data['trans'][0]['assets']['coin'] != utils.get_reward(self.index):
+            if (self.data['trans'][0]['assets']['coin']-fee) != utils.get_reward(self.index):
+                print "%s - %s != %s" % (self.data['trans'][0]['assets']['coin'], fee, utils.get_reward(self.index))
                 print "reward is not correct"
                 return False
         return True
